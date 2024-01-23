@@ -141,7 +141,8 @@ attach variables [ CH_CA ]
 #LSA: symbol(RI10_RA)	is RI10_I10 & RI10_RA [ symbol = RI10_I10 << 4; ] { tmp:4 = (symbol + RI10_RA) & 0xFFFFFFF0;export tmp; }
 LSA: symbol(RI10_RA)	is RI10_I10 & RI10_RA [ symbol = RI10_I10 << 4; ] { tmp:4 = trunc(symbol + RI10_RA);export tmp; }
 targetAddress: symbol   is RI16_I16 [ symbol = inst_start + (RI16_I16 << 2); ] { export *[ram]:4 symbol; }
-absoluteAddress: symbol   is RI16_I16 [ symbol = (RI16_I16 << 2); ] { export *[ram]:4 symbol; }
+# absoluteAddress use hack to read i16 as i18u, otherwise branching above 0x1FFFC not work.
+absoluteAddress: symbol   is RI18_I18u [ symbol = (RI18_I18u &0xFFFF) << 2; ] { export *[ram]:4 symbol; }
 LSAabsolute: symbol  is RI16_I16 [ symbol = (RI16_I16 << 2) & 0x3FFF0; ] { tmp:4 = symbol:4; export tmp; }
 #loadAddress: symbol     is RI18_I18 [ symbol = RI18_I18*1; ] { export *[ram]:8 symbol; }
 
@@ -1362,9 +1363,9 @@ define pcodeop __spu_clgti;
 }
 
 # bra symbol
-:bra targetAddress is RI16_OP=96 & RI16_I16 & RI16_RT=0 & targetAddress
+:bra absoluteAddress is RI16_OP=96 & RI18_I18u & RI16_RT=0 & absoluteAddress
 {
-    goto targetAddress;
+    goto absoluteAddress;
 }
 
 # brsl rt,symbol
@@ -1375,7 +1376,7 @@ define pcodeop __spu_clgti;
 }
 
 # brasl rt,symbol
-:brasl RI16_RT,absoluteAddress is RI16_OP=98 & RI16_I16 & RI16_RT & absoluteAddress
+:brasl RI16_RT,absoluteAddress is RI16_OP=98 & RI18_I18u & RI16_RT & absoluteAddress
 {
     RI16_RT = inst_next;
     call absoluteAddress;

@@ -305,9 +305,9 @@ define pcodeop __spu_cdx;
 define pcodeop __spu_fsmbi;
 
 # fsmbi rt,symbol
-:fsmbi RI16_RT,RI16_I16 is RI16_OP=101 & RI16_I16 & RI16_RT
+:fsmbi RI16_RT,RI16_I16u is RI16_OP=101 & RI16_I16u & RI16_RT
 {
-    mask = RI16_I16:2;
+    mask = RI16_I16u:2;
     if (mask(1) == (mask:1)) goto <mask_64>;
     RI16_RT = __spu_fsmbi(mask);
     goto inst_next;
